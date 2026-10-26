@@ -26,12 +26,14 @@ class _ActivationScreenState extends State<ActivationScreen> {
 
   Future<void> _loadDeviceId() async {
     final id = await LicenseManager.getDeviceId();
-    setState(() {
-      _deviceId = id;
-    });
+    if (mounted) {
+      setState(() {
+        _deviceId = id;
+      });
+    }
   }
 
-  void _verifyActivation() async {
+  Future<void> _verifyActivation() async {
     final input = _keyController.text.trim();
     if (input.isEmpty) {
       setState(() => _errorMessage = '❌ يرجى إدخال رمز التفعيل');
@@ -48,22 +50,26 @@ class _ActivationScreenState extends State<ActivationScreen> {
     if (success) {
       widget.onActivated();
     } else {
-      setState(() {
-        _errorMessage = '❌ رمز التفعيل غير صحيح أو غير مخصص لهذا الهاتف!';
-        _keyController.clear();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '❌ رمز التفعيل غير صحيح أو غير مخصص لهذا الهاتف!';
+          _keyController.clear();
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  void _contactDev() async {
+  Future<void> _contactDev() async {
     final msg = 'مرحباً، أريد تفعيل تطبيق MAMX.\nرمز جهازي هو: $_deviceId\nالرجاء إرسال رمز التفعيل.';
-    final url = 'https://wa.me/${AppConstants.devPhone}?text=${Uri.encodeComponent(msg)}';
+    final url = Uri.parse('https://wa.me/${AppConstants.devPhone}?text=${Uri.encodeComponent(msg)}');
     
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
     } else {
-      setState(() => _errorMessage = 'تعذر فتح واتساب، هل هو مثبت؟');
+      if (mounted) {
+        setState(() => _errorMessage = 'تعذر فتح واتساب، هل هو مثبت؟');
+      }
     }
   }
 
@@ -95,15 +101,13 @@ class _ActivationScreenState extends State<ActivationScreen> {
                   style: TextStyle(fontSize: 14, color: AppTheme.ink, height: 1.5),
                 ),
                 const SizedBox(height: 15),
-                
-                // صندوق رمز الجهاز
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                   decoration: BoxDecoration(
                     color: AppTheme.sand,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.gold, width: 2, style: BorderStyle.solid),
+                    border: Border.all(color: AppTheme.gold, width: 2),
                   ),
                   child: Text(
                     _deviceId,
@@ -112,10 +116,11 @@ class _ActivationScreenState extends State<ActivationScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text('تنبيه: هذا الرمز فريد لهاتفك ولا يعمل على أي هاتف آخر.', style: TextStyle(fontSize: 11, color: AppTheme.red, fontWeight: FontWeight.bold, textAlign: TextAlign.center)),
+                const Text('تنبيه: هذا الرمز فريد لهاتفك ولا يعمل على أي هاتف آخر.', 
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: AppTheme.red, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 15),
-
-                // حقل الإدخال
                 TextField(
                   controller: _keyController,
                   textAlign: TextAlign.center,
@@ -132,14 +137,11 @@ class _ActivationScreenState extends State<ActivationScreen> {
                   textCapitalization: TextCapitalization.characters,
                   onChanged: (val) => _keyController.text = val.toUpperCase(),
                 ),
-                
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 10),
                   Text(_errorMessage!, style: const TextStyle(color: AppTheme.red, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                 ],
                 const SizedBox(height: 15),
-
-                // زر التفعيل
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -155,8 +157,6 @@ class _ActivationScreenState extends State<ActivationScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // زر واتساب
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
