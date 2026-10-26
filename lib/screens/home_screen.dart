@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../providers/app_state.dart';
 import 'operation_screen.dart';
+import '../widgets/accounts_modal.dart'; // ربط نافذة الحسابات
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,7 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
+          // شريط التاريخ
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -34,6 +36,7 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 15),
           
+          // بطاقات الإحصائيات والرسم البياني
           Row(
             children: [
               Expanded(
@@ -79,9 +82,20 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
+          // أزرار الإحصائيات الوسطى
           Row(
             children: [
-              Expanded(child: _midButton(Icons.people, 'الحسابات', '${state.people.length}')),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const AccountsModal(),
+                  ),
+                  child: _midButton(Icons.people, 'الحسابات', '${state.people.length}'),
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(child: _midButton(Icons.account_balance_wallet, 'الصندوق', '0')),
               const SizedBox(width: 8),
@@ -90,18 +104,25 @@ class HomeScreen extends StatelessWidget {
           ),
           
           const SizedBox(height: 20),
-          const Row(
+          
+          // القائمة السريعة
+          Row(
             children: [
-              Icon(Icons.notifications, color: AppTheme.ink, size: 22),
-              SizedBox(width: 8),
-              Icon(Icons.settings, color: AppTheme.ink, size: 22),
-              Spacer(),
-              Text('القائمة السريعة', style: TextStyle(color: AppTheme.txtLight, fontWeight: FontWeight.w900, fontSize: 16)),
+              GestureDetector(
+                onTap: () {
+                  // كود التنبيهات لاحقاً
+                },
+                child: const Icon(Icons.notifications, color: AppTheme.ink, size: 24),
+              ),
+              const SizedBox(width: 10),
+              const Icon(Icons.settings, color: AppTheme.ink, size: 24),
+              const Spacer(),
+              const Text('القائمة السريعة', style: TextStyle(color: AppTheme.txtLight, fontWeight: FontWeight.w900, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 10),
           
-          // أزرار سريعة
+          // أزرار العمليات السريعة
           Row(
             children: [
               Expanded(child: _quickButton(context, Icons.arrow_downward, 'إيداع', 'dep')),
