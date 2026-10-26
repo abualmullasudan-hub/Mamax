@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          path: 'app_code' # نضع كودك في مجلد مؤقت
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -26,14 +28,27 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Create Full Flutter Project & Move Code
+        run: |
+          # 1. إنشاء مشروع فلاتر جديد (هذا سينشئ مجلد android تلقائياً)
+          flutter create mamax_app
+          
+          # 2. نسخ ملفاتك (lib و pubspec) إلى المشروع الجديد
+          rm -rf mamax_app/lib
+          cp -r app_code/lib mamax_app/lib
+          cp app_code/pubspec.yaml mamax_app/pubspec.yaml
+          
+          # 3. الدخول للمشروع وتثبيت الحزم
+          cd mamax_app
+          flutter pub get
 
       - name: Build APK (Release)
-        run: flutter build apk --release
+        run: |
+          cd mamax_app
+          flutter build apk --release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mamax-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: mamax_app/build/app/outputs/flutter-apk/app-release.apk
