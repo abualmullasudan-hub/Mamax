@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          path: 'app_code' # نضع كودك في مجلد مؤقت
+          path: 'app_code'
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -28,19 +28,33 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create Full Flutter Project & Move Code
+      - name: Create Full Flutter Project & Fix Kotlin
         run: |
-          # 1. إنشاء مشروع فلاتر جديد (هذا سينشئ مجلد android تلقائياً)
+          # 1. إنشاء مشروع فلاتر جديد
           flutter create mamax_app
           
-          # 2. نسخ ملفاتك (lib و pubspec) إلى المشروع الجديد
+          # 2. نسخ ملفاتك
           rm -rf mamax_app/lib
           cp -r app_code/lib mamax_app/lib
           cp app_code/pubspec.yaml mamax_app/pubspec.yaml
           
-          # 3. الدخول للمشروع وتثبيت الحزم
-          cd mamax_app
+          # نسخ الصور إذا وجدت
+          if [ -d "app_code/assets" ]; then
+            cp -r app_code/assets mamax_app/assets
+          fi
+          
+          # 3. تحديث إصدار Kotlin (حل المشكلة)
+          cd mamax_app/android
+          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.22"/' build.gradle || true
+          sed -i 's/id "org.jetbrains.kotlin.android" version .*/id "org.jetbrains.kotlin.android" version "1.9.22" apply false/' settings.gradle || true
+          
+          cd ..
           flutter pub get
+          
+          # 4. توليد الأيقونات (إذا كانت مهيأة)
+          if grep -q "flutter_launcher_icons" pubspec.yaml; then
+            dart run flutter_launcher_icons
+          fi
 
       - name: Build APK (Release)
         run: |
