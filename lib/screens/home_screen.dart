@@ -1,0 +1,194 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/theme.dart';
+import '../providers/app_state.dart';
+import 'operation_screen.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = Provider.of<AppState>(context);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.dk2,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppTheme.line),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.calendar_today, size: 16, color: AppTheme.txtLight),
+                SizedBox(width: 6),
+                Text('إحصائيات: هذا العام', style: TextStyle(color: AppTheme.txtLight, fontWeight: FontWeight.bold, fontSize: 13)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 15),
+          
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  children: [
+                    _sumCard('دخل', '0 ${state.currency}', AppTheme.green, Icons.arrow_upward),
+                    const SizedBox(height: 6),
+                    _sumCard('مصروف', '0 ${state.currency}', AppTheme.red, Icons.arrow_downward),
+                    const SizedBox(height: 6),
+                    _sumCard('الربح', '0 ${state.currency}', AppTheme.gold, Icons.attach_money),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  height: 115,
+                  decoration: BoxDecoration(
+                    color: AppTheme.cream,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.line, width: 2),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 75,
+                      height: 75,
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: AppTheme.red),
+                      child: Center(
+                        child: Container(
+                          width: 45,
+                          height: 45,
+                          decoration: const BoxDecoration(shape: BoxShape.circle, color: AppTheme.cream),
+                          child: const Center(child: Text('0', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(child: _midButton(Icons.people, 'الحسابات', '${state.people.length}')),
+              const SizedBox(width: 8),
+              Expanded(child: _midButton(Icons.account_balance_wallet, 'الصندوق', '0')),
+              const SizedBox(width: 8),
+              Expanded(child: _midButton(Icons.account_balance, 'البنوك', '0')),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          const Row(
+            children: [
+              Icon(Icons.notifications, color: AppTheme.ink, size: 22),
+              SizedBox(width: 8),
+              Icon(Icons.settings, color: AppTheme.ink, size: 22),
+              Spacer(),
+              Text('القائمة السريعة', style: TextStyle(color: AppTheme.txtLight, fontWeight: FontWeight.w900, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          
+          // أزرار سريعة
+          Row(
+            children: [
+              Expanded(child: _quickButton(context, Icons.arrow_downward, 'إيداع', 'dep')),
+              const SizedBox(width: 8),
+              Expanded(child: _quickButton(context, Icons.arrow_upward, 'سحب', 'wd')),
+              const SizedBox(width: 8),
+              Expanded(child: _quickButton(context, Icons.swap_horiz, 'تحويل', 'tr')),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _quickButton(BuildContext context, IconData icon, String title, String type) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => OperationScreen(initialType: type)));
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [AppTheme.dk1, AppTheme.dk2], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.line, width: 2),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), shape: BoxShape.circle),
+              child: Icon(icon, color: AppTheme.txtLight, size: 20),
+            ),
+            const SizedBox(height: 6),
+            Text(title, style: const TextStyle(color: AppTheme.txtLight, fontSize: 12, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sumCard(String title, String value, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.cream,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color, width: 2),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(title, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 4),
+              Icon(icon, size: 14, color: color),
+            ],
+          ),
+          Text(value, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w900)),
+        ],
+      ),
+    );
+  }
+
+  Widget _midButton(IconData icon, String title, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [AppTheme.dk1, AppTheme.dk2], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppTheme.txtLight, size: 14),
+              const SizedBox(width: 4),
+              Text(title, style: const TextStyle(color: AppTheme.txtLight, fontSize: 11, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(color: AppTheme.txtLight, fontSize: 14, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+}
