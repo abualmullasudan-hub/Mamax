@@ -2,35 +2,36 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 class LicenseManager {
   static const String _keyActivated = 'MAMX_ACTIVATED';
   static const String _keyLicense = 'MAMX_LICENSE_KEY';
   static const String _keyDeviceId = 'MAMX_DEVICE_ID';
 
-  // 1. توليد معرف الجهاز الفريد
   static Future<String> getDeviceId() async {
     final prefs = await SharedPreferences.getInstance();
     String? storedId = prefs.getString(_keyDeviceId);
-
     if (storedId != null) return storedId;
 
     final deviceInfo = DeviceInfoPlugin();
     String raw = '';
-    try {
-      if (Theme.of(null) == null) {} // مجرد حيلة لتجاهل الخطأ، سنستخدم المنصة
-    } catch (_) {}
 
-    // الحصول على معلومات الجهاز
     try {
-      final androidInfo = await deviceInfo.androidInfo;
-      raw = '${androidInfo.id}${androidInfo.model}${androidInfo.device}${androidInfo.version.release}';
+      if (kIsWeb) {
+        final webInfo = await deviceInfo.webBrowserInfo;
+        raw = '${webInfo.userAgent}${webInfo.vendor}';
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        final androidInfo = await deviceInfo.androidInfo;
+        raw = '${androidInfo.id}${androidInfo.model}${androidInfo.device}${androidInfo.version.release}';
+      } else {
+        final webInfo = await deviceInfo.webBrowserInfo;
+        raw = '${webInfo.userAgent}${webInfo.vendor}';
+      }
     } catch (_) {
-      final webInfo = await deviceInfo.webBrowserInfo;
-      raw = '${webInfo.userAgent}${webInfo.vendor}';
+      raw = 'default_device_id';
     }
 
-    // إنشاء الهاش
     final bytes = utf8.encode(raw);
     final digest = md5.convert(bytes);
     String hex = digest.toString().toUpperCase();
@@ -41,7 +42,6 @@ class LicenseManager {
     return storedId;
   }
 
-  // 2. توليد رمز التفعيل بناءً على معرف الجهاز
   static String generateLicenseKey(String deviceId) {
     final cleanId = deviceId.replaceAll('-', '');
     int hash = 0;
@@ -55,7 +55,6 @@ class LicenseManager {
     return 'M${hex.substring(0, 3)}-${hex.substring(3, 7)}';
   }
 
-  // 3. التحقق من حالة التفعيل
   static Future<bool> isActivated() async {
     final prefs = await SharedPreferences.getInstance();
     final isAct = prefs.getBool(_keyActivated) ?? false;
@@ -65,9 +64,8 @@ class LicenseManager {
       final deviceId = await getDeviceId();
       final expectedKey = generateLicenseKey(deviceId);
       
-      if (savedKey == expectedKey) {
-        return true;
-      } else {
+      if (savedKey == expectedKey) return true;
+      else {
         await prefs.remove(_keyActivated);
         await prefs.remove(_keyLicense);
       }
@@ -75,7 +73,6 @@ class LicenseManager {
     return false;
   }
 
-  // 4. حفظ التفعيل
   static Future<bool> activate(String inputKey) async {
     final deviceId = await getDeviceId();
     final expectedKey = generateLicenseKey(deviceId);
