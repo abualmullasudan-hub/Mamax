@@ -27,7 +27,6 @@ class SettingsScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(12),
             children: [
-              // قسم العملة
               _buildSection(
                 title: 'العملة',
                 icon: Icons.attach_money,
@@ -44,8 +43,6 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
               ),
-              
-              // قسم الثيمات (مبسط)
               _buildSection(
                 title: 'مظهر التطبيق',
                 icon: Icons.palette,
@@ -59,8 +56,6 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // قسم معلومات التطبيق
               _buildSection(
                 title: 'عن المطور',
                 icon: Icons.info,
@@ -70,7 +65,10 @@ class SettingsScreen extends StatelessWidget {
                     Text('تطبيق MAMX - إدارة الحسابات', style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 5),
                     Text('المطور: Abu Almull', style: TextStyle(color: Colors.grey)),
-                    Text('للدعم: 0922008009', style: TextStyle(color: Colors.grey, direction: TextDirection.ltr)),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text('0922008009', style: TextStyle(color: Colors.grey)),
+                    ),
                   ],
                 ),
               )
@@ -93,10 +91,7 @@ class SettingsScreen extends StatelessWidget {
         leading: CircleAvatar(backgroundColor: AppTheme.dk2, child: Icon(icon, color: AppTheme.txtLight)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.ink)),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(15),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(15), child: child),
         ],
       ),
     );
@@ -105,7 +100,6 @@ class SettingsScreen extends StatelessWidget {
   Widget _themeButton(BuildContext context, String name, Color bg, Color primary) {
     return GestureDetector(
       onTap: () {
-        // هنا يتم تطبيق الثيم (يتطلب ربطاً مع ThemeProvider)
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سيتم تفعيل تغيير الثيم في التحديث القادم')));
       },
       child: Container(
